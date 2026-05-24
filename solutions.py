@@ -62,6 +62,30 @@ def day_2(part_1=True) -> str:
     return ''.join(code)
 
 
+def day_3(part_1=True) -> int:
+    def parse_1(x :str) -> List[str] | Tuple[int, int, int]:
+        return (s:=x.split()) and (int(s[0]), int(s[1]), int(s[2]))
+
+    def parse_2(data_: str) -> List[List[int]]:
+        data_ = [(int((s:=d.split())[0]), int(s[1]), int(s[2])) for d in data_.split('\n')]
+        triangles = []
+        for i in range(0, len(data_)-2, 3):
+            triangles.append((data_[i][0], data_[i+1][0], data_[i+2][0]))
+            triangles.append((data_[i][1], data_[i + 1][1], data_[i + 2][1]))
+            triangles.append((data_[i][2], data_[i + 1][2], data_[i + 2][2]))
+        return triangles
+
+    data = read_input(
+        day=3,
+        delim='\n' if part_1 else None,
+        parse=parse_1 if part_1 else parse_2,
+    )
+
+    def is_valid(a, b, c: int) -> bool:
+        return a + b > c and b + c > a and c + a > b
+    return sum(is_valid(d1, d2, d3) for d1, d2, d3 in data)
+
+
 
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
