@@ -10,7 +10,7 @@ import re
 import sys
 from typing import List, Dict, Set, Tuple
 
-
+from constants import DIRECTIONS, CARDINAL_DIRECTIONS
 from utils import read_input, get_inbounds
 
 
@@ -33,6 +33,33 @@ def day_1(part_1=True) -> int:
                 return abs(y) + abs(x)
             visited.add((y, x))
     return abs(y) + abs(x)
+
+
+def day_2(part_1=True) -> str:
+    directions = dict(zip('DRUL', ((1, 0), (0, 1), (-1, 0), (0, -1))))
+    grid = [['1','2', '3'], ['4', '5', '6'], ['7', '8', '9']]
+    y, x = 1, 1
+    if not part_1:
+        grid = [
+            [None, None, '1', None, None],
+            [None, '2', '3', '4', None],
+            ['5', '6', '7', '8', '9'],
+            [None, 'A', 'B', 'C', None],
+            [None, None, 'D', None, None],
+        ]
+        y, x = 2, 0
+    inbounds = get_inbounds(grid)
+    data = read_input(day=2)
+    code = []
+    for instruction in data:
+        for direction in instruction:
+            yi, xi = directions[direction]
+            if not inbounds(y+yi, x+xi) or grid[y+yi][x+xi] is None:
+                continue
+            y += yi
+            x += xi
+        code.append(grid[y][x])
+    return ''.join(code)
 
 
 
