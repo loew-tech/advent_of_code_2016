@@ -1,5 +1,5 @@
 import math
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, namedtuple
 from functools import reduce, cache
 from hashlib import md5
 from itertools import permutations
@@ -8,7 +8,7 @@ import heapq
 import inspect
 import re
 import sys
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict, Set, Tuple, Any
 
 from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALPHAS, ALPHAS_TO_NUMS
 from utils import read_input, get_inbounds
@@ -149,57 +149,48 @@ def day_6(part_1=True) -> str:
 
 
 def day_7(part_1=True) -> int:
-    addresses = read_input(day=7)
-    def supports_tls(address: str) -> bool:
+    Address = namedtuple('Address', ['sequences', 'hypernets'])
+    def build_addresses(data: List[str]) -> List[Address]:
+        addresses_ = []
+        for address in data:
+            sequences, hypernets = [], []
+            indx, is_hypernet = 0, False
+            while indx < len(address):
+                sequence = []
+                while indx < len(address) and address[indx] not in '[]':
+                    sequence.append(address[indx])
+                    indx += 1
+                if is_hypernet:
+                    hypernets.append(''.join(sequence))
+                else:
+                    sequences.append(''.join(sequence))
+                is_hypernet = not is_hypernet
+                indx += 1
+            addresses_.append(Address(sequences, hypernets))
+        return addresses_
+    addresses = build_addresses(read_input(day=7))
+
+    def supports_tls(address: Address) -> bool:
         def has_bridge(str_: List[str]) -> bool:
             for i in range(len(str_)-3):
                 if not str_[i] == str_[i+1] and str_[i:i+2] == str_[i+2:i+4][::-1]:
                     return True
             return False
 
-        indx, is_hypernet, bridged = 0, False, False
-        while indx < len(address):
-            sequence = []
-            while indx < len(address) and address[indx] not in '[]':
-                sequence.append(address[indx])
-                indx += 1
-            bridge = has_bridge(sequence)
-            if is_hypernet:
-                if bridge:
-                    return False
-            else:
-                bridged |= bridge
-            is_hypernet = not is_hypernet
-            indx += 1
-        return bridged
+        return any(has_bridge(seq) for seq in address.sequences) and \
+            not any(has_bridge(hypernet) for hypernet in address.hypernets)
 
-    if part_1:
-        return sum(supports_tls(addr) for addr in addresses)
-
-    def supports_ssl(address: str) -> bool:
-        sequences, hypernets = [], []
-        indx, is_hypernet = 0, False
-        while indx < len(address):
-            sequence = []
-            while indx < len(address) and address[indx] not in '[]':
-                sequence.append(address[indx])
-                indx += 1
-            if is_hypernet:
-                hypernets.append(''.join(sequence))
-            else:
-                sequences.append(''.join(sequence))
-            is_hypernet = not is_hypernet
-            indx += 1
-
-        for sequence in sequences:
-            for i in range(len(sequence)-2):
-                a, b, c = sequence[i], sequence[i+1], sequence[i+2]
+    def supports_ssl(address: Address) -> bool:
+        for seq in address.sequences:
+            for i in range(len(seq)-2):
+                a, b, c = seq[i:i+3]
                 if not a == b and a == c:
-                    if any(f'{b}{a}{b}' in hypernet for hypernet in hypernets):
+                    if any(f'{b}{a}{b}' in hypernet for hypernet in address.hypernets):
                         return True
         return False
 
-    return sum(supports_ssl(addr) for addr in addresses)
+    check = supports_tls if part_1 else supports_ssl
+    return sum(check(address) for address in addresses)
 
 
 if __name__ == '__main__':
