@@ -91,9 +91,9 @@ def day_4(part_1=True) -> int:
         valid_rooms = []
         for room in rooms:
             words = re.findall(REGEX_WORDS, room)
-            name = Counter(''.join(words))
+            name = Counter(''.join(words[:-1]))
             sector_id = abs(int(re.findall(REGEX_DIGITS, room)[0]))
-            checksum = room[room.index('[') + 1:-1]
+            checksum = words[-1]
             expctd = ''.join(c for c, _ in sorted(name.items(), key=lambda x: (-x[1], x[0]))[:5])
             if checksum == expctd:
                 valid_rooms.append((words[:-1], sector_id))
@@ -104,10 +104,8 @@ def day_4(part_1=True) -> int:
         return sum(sect_id for _, sect_id in valids)
 
     def room_name(rooms: List[str], sector_id: int) -> str:
-        name = []
-        for room in rooms:
-            name.append(''.join(NUMS_TO_ALHPAS[(ALPHAS_TO_NUMS[c]  + sector_id) % 26] for c in room))
-        return ' '.join(name)
+        return ' '.join(''.join(NUMS_TO_ALHPAS[(ALPHAS_TO_NUMS[c] + sector_id) % 26]
+                                for c in room) for room in rooms)
 
     north_pole_storage = 'northpole object storage'
     for rooms_, sect_id in valids:
