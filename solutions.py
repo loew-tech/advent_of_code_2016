@@ -148,6 +148,38 @@ def day_6(part_1=True) -> str:
     return ''.join(min(counts[key].items(), key=lambda x: x[1])[0] for key in counts)
 
 
+def day_7(part_1=True) -> int:
+    if not part_1:
+        return NotImplemented
+
+    addresses = read_input(day=7)
+    def supports_tls(address: str) -> bool:
+        def has_bridge(str_: List[str]) -> bool:
+            for i in range(len(str_)-3):
+                if not str_[i] == str_[i+1] and str_[i:i+2] == str_[i+2:i+4][::-1]:
+                    return True
+            return False
+
+        indx, is_hypernet, bridged = 0, False, False
+        while indx < len(address):
+            sequence = []
+            while indx < len(address) and address[indx] not in '[]':
+                sequence.append(address[indx])
+                indx += 1
+            bridge = has_bridge(sequence)
+            if is_hypernet:
+                if bridge:
+                    return False
+            else:
+                bridged |= bridge
+            is_hypernet = not is_hypernet
+            indx += 1
+        return bridged
+
+    return sum(supports_tls(addr) for addr in addresses)
+# < 967
+# < 157
+
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
                                  sys.argv[1:] else range(1, 26)) if
