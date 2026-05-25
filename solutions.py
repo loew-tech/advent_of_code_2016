@@ -87,23 +87,21 @@ def day_3(part_1=True) -> int:
 
 
 def day_4(part_1=True) -> int:
-    data = read_input(day=4)
-    valids = []
-    def valid_room_value(room: str) -> int:
-        words = re.findall(REGEX_WORDS, room)
-        name = Counter(''.join(words))
-        sector_id = abs(int(re.findall(REGEX_DIGITS, room)[0]))
-        checksum = room[room.index('[') + 1:-1]
-        expctd = ''.join([i[0] for i in sorted(name.most_common(5),
-                                               key=lambda x: (x[1], -ord(x[0])), reverse=True)])
-        if checksum == expctd:
-            valids.append((words[:-1], sector_id))
-            return sector_id
-        return 0
+    def get_valid_rooms(rooms: List[str]) -> List[Tuple[List[str], int]]:
+        valid_rooms = []
+        for room in rooms:
+            words = re.findall(REGEX_WORDS, room)
+            name = Counter(''.join(words))
+            sector_id = abs(int(re.findall(REGEX_DIGITS, room)[0]))
+            checksum = room[room.index('[') + 1:-1]
+            expctd = ''.join(c for c, _ in sorted(name.items(), key=lambda x: (-x[1], x[0]))[:5])
+            if checksum == expctd:
+                valid_rooms.append((words[:-1], sector_id))
+        return valid_rooms
 
-    valid_sum = sum(valid_room_value(r) for r in data)
+    valids = get_valid_rooms(read_input(day=4))
     if part_1:
-        return valid_sum
+        return sum(sect_id for _, sect_id in valids)
 
     def room_name(rooms: List[str], sector_id: int) -> str:
         name = []
