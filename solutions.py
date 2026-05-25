@@ -10,7 +10,7 @@ import re
 import sys
 from typing import List, Dict, Set, Tuple
 
-from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALHPAS, ALPHAS_TO_NUMS
+from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALPHAS, ALPHAS_TO_NUMS
 from utils import read_input, get_inbounds
 
 
@@ -104,7 +104,7 @@ def day_4(part_1=True) -> int:
         return sum(sect_id for _, sect_id in valids)
 
     def room_name(rooms: List[str], sector_id: int) -> str:
-        return ' '.join(''.join(NUMS_TO_ALHPAS[(ALPHAS_TO_NUMS[c] + sector_id) % 26]
+        return ' '.join(''.join(NUMS_TO_ALPHAS[(ALPHAS_TO_NUMS[c] + sector_id) % 26]
                                 for c in room) for room in rooms)
 
     north_pole_storage = 'northpole object storage'
@@ -113,6 +113,23 @@ def day_4(part_1=True) -> int:
             return sect_id
     return -1
 
+
+def day_5(part_1=True) -> str:
+    door_id, num_zeroes, len_password, count = read_input(day=5, delim=None), 5, 8, -1
+    zeroes = '0' * num_zeroes
+    password, password2 = [], {}
+    while len(password) < len_password and len(password2) < len_password:
+        count += 1
+        key = md5(f'{door_id}{count}'.encode()).hexdigest()
+        while not key.startswith(zeroes) and (count := count + 1):
+            key = md5(f'{door_id}{count}'.encode()).hexdigest()
+        if part_1:
+            password.append(key[num_zeroes])
+            continue
+        indx = int(key[num_zeroes]) if key[num_zeroes].isnumeric() else -1
+        if 0 <= indx < len_password and indx not in password2:
+            password2[indx] = key[num_zeroes+1]
+    return ''.join(password) if part_1 else ''.join(password2[i] for i in range(len_password))
 
 
 if __name__ == '__main__':

@@ -15,7 +15,7 @@ DIRECTIONS = tuple((i, j) for i in range(-1, 2)
 CARDINAL_DIRECTIONS = tuple((i, j) for i, j in DIRECTIONS
                             if not abs(i) == abs(j))
 
-NUMS_TO_ALHPAS = {i: v for i, v in enumerate(ascii_lowercase)}
+NUMS_TO_ALPHAS = {i: v for i, v in enumerate(ascii_lowercase)}
 ALPHAS_TO_NUMS = {v: i for i, v in enumerate(ascii_lowercase)}
 
 OPS_DICT = {'+': add, '*': mul, '-': sub, '/': truediv, '//': floordiv}
