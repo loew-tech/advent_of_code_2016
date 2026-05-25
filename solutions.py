@@ -132,6 +132,22 @@ def day_5(part_1=True) -> str:
     return ''.join(password) if part_1 else ''.join(password2[i] for i in range(len_password))
 
 
+def day_6(part_1=True) -> str:
+    data = read_input(day=6)
+    maxes = {i: (-1, '') for i in range(len(data[0]))}
+    counts = defaultdict(lambda: defaultdict(int))
+
+    for entry in data:
+        for i, c in enumerate(entry):
+            counts[i][c] += 1
+            if counts[i][c] > maxes[i][0]:
+                maxes[i] = (counts[i][c], c)
+
+    if part_1:
+        return ''.join(maxes[i][1] for i in range(len(maxes)))
+    return ''.join(min(counts[key].items(), key=lambda x: x[1])[0] for key in counts)
+
+
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
                                  sys.argv[1:] else range(1, 26)) if
