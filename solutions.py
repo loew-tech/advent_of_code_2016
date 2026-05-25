@@ -149,9 +149,6 @@ def day_6(part_1=True) -> str:
 
 
 def day_7(part_1=True) -> int:
-    if not part_1:
-        return NotImplemented
-
     addresses = read_input(day=7)
     def supports_tls(address: str) -> bool:
         def has_bridge(str_: List[str]) -> bool:
@@ -176,9 +173,34 @@ def day_7(part_1=True) -> int:
             indx += 1
         return bridged
 
-    return sum(supports_tls(addr) for addr in addresses)
-# < 967
-# < 157
+    if part_1:
+        return sum(supports_tls(addr) for addr in addresses)
+
+    def supports_ssl(address: str) -> bool:
+        sequences, hypernets = [], []
+        indx, is_hypernet = 0, False
+        while indx < len(address):
+            sequence = []
+            while indx < len(address) and address[indx] not in '[]':
+                sequence.append(address[indx])
+                indx += 1
+            if is_hypernet:
+                hypernets.append(''.join(sequence))
+            else:
+                sequences.append(''.join(sequence))
+            is_hypernet = not is_hypernet
+            indx += 1
+
+        for sequence in sequences:
+            for i in range(len(sequence)-2):
+                a, b, c = sequence[i], sequence[i+1], sequence[i+2]
+                if not a == b and a == c:
+                    if any(f'{b}{a}{b}' in hypernet for hypernet in hypernets):
+                        return True
+        return False
+
+    return sum(supports_ssl(addr) for addr in addresses)
+
 
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
