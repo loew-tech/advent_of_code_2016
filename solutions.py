@@ -1,5 +1,5 @@
 import math
-from collections import defaultdict
+from collections import defaultdict, Counter
 from functools import reduce, cache
 from hashlib import md5
 from itertools import permutations
@@ -10,7 +10,7 @@ import re
 import sys
 from typing import List, Dict, Set, Tuple
 
-from constants import DIRECTIONS, CARDINAL_DIRECTIONS
+from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALHPAS, ALPHAS_TO_NUMS
 from utils import read_input, get_inbounds
 
 
@@ -84,6 +84,38 @@ def day_3(part_1=True) -> int:
     def is_valid(a, b, c: int) -> bool:
         return a + b > c and b + c > a and c + a > b
     return sum(is_valid(d1, d2, d3) for d1, d2, d3 in data)
+
+
+def day_4(part_1=True) -> int:
+    data = read_input(day=4)
+    valids = []
+    def valid_room_value(room: str) -> int:
+        words = re.findall(REGEX_WORDS, room)
+        name = Counter(''.join(words))
+        sector_id = abs(int(re.findall(REGEX_DIGITS, room)[0]))
+        checksum = room[room.index('[') + 1:-1]
+        expctd = ''.join([i[0] for i in sorted(name.most_common(5),
+                                               key=lambda x: (x[1], -ord(x[0])), reverse=True)])
+        if checksum == expctd:
+            valids.append((words[:-1], sector_id))
+            return sector_id
+        return 0
+
+    valid_sum = sum(valid_room_value(r) for r in data)
+    if part_1:
+        return valid_sum
+
+    def room_name(rooms: List[str], sector_id: int) -> str:
+        name = []
+        for room in rooms:
+            name.append(''.join(NUMS_TO_ALHPAS[(ALPHAS_TO_NUMS[c]  + sector_id) % 26] for c in room))
+        return ' '.join(name)
+
+    north_pole_storage = 'northpole object storage'
+    for rooms_, sect_id in valids:
+        if room_name(rooms_, sect_id) == north_pole_storage:
+            return sect_id
+    return -1
 
 
 
