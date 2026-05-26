@@ -18,7 +18,7 @@ from utils import read_input, get_inbounds
 
 
 def day_1(part_1=True) -> int:
-    data = read_input(day=1, delim=', ', parse=lambda x: (x[0], int(x[1:])))
+    data = read_input(day=1, delim=', ', parse=lambda x_: (x_[0], int(x_[1:])))
     incs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
     indx = 0
     y, x = 0, 0
@@ -201,6 +201,25 @@ def day_8(part_1=True) -> int | None:
         return sum(sum(b for b in row) for row in grid)
     print_grid([['#' if b else ' ' for b in row] for row in grid])
     return None
+
+
+def day_9(part_1=True) -> int:
+    data = read_input(day=9, delim=None)
+    i, size = 0, 0
+
+    def decompress_recursive(start=0, length=0) -> Tuple[int, int]:
+        return NotImplemented
+
+    while i < len(data):
+        if not data[i] == '(':
+            size += 1
+            i += 1
+            continue
+        end = data.index(')', i)
+        chars, repeat = map(int, data[i+1:end].split('x'))
+        size += chars * repeat
+        i = end + 1 + chars
+    return size
 
 
 if __name__ == '__main__':
