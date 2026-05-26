@@ -11,6 +11,8 @@ import sys
 from typing import List, Dict, Set, Tuple, Any
 
 from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALPHAS, ALPHAS_TO_NUMS
+from dbg_utils import print_grid
+from helpers import day_8_build_grid
 from utils import read_input, get_inbounds
 
 
@@ -193,10 +195,18 @@ def day_7(part_1=True) -> int:
     return sum(check(address) for address in addresses)
 
 
+def day_8(part_1=True) -> int | None:
+    grid = day_8_build_grid(read_input(day=8))
+    if part_1:
+        return sum(sum(b for b in row) for row in grid)
+    print_grid([['#' if b else ' ' for b in row] for row in grid])
+    return None
+
+
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
                                  sys.argv[1:] else range(1, 26)) if
-            type(i) == int or i.isnumeric())
+            type(i) == int or str(i).isnumeric())
     members = inspect.getmembers(inspect.getmodule(inspect.currentframe()))
     funcs = {name: member for name, member in members
              if inspect.isfunction(member)}
