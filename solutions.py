@@ -206,40 +206,25 @@ def day_8(part_1=True) -> int | None:
 
 def day_9(part_1=True) -> int:
     data = read_input(day=9, delim=None)
-
     def decompress_recursive(start=0, stop=float('inf'), repititions=1, depth = 0) -> Tuple[int, int]:
-        # print(f'{"  " * depth}* {start=} {stop=} {repititions=} {data[start:min(stop, len(data))]=}')
         size, count, end = 0, 0, start
         while end < len(data) and end < stop:
-            # print(f'{"  " * depth}\t {end=} {count=} {size=}')
             if not data[end] == '(':
                 size += 1
                 end += 1
                 count += 1
-                # print(f'{"  " * depth}\t\t continue')
                 continue
             term = data.index(')', end)
             chars, repeats = map(int, data[end+1:term].split('x'))
+            if part_1:
+                end = term + 1 + chars
+                size += chars * repeats
+                continue
             size_i, new_end = decompress_recursive(start=term+1, stop=term + 1 + chars, repititions=repeats, depth=depth+1)
             size += size_i
             end = new_end
-        # print(f'{"  " * depth}-> {size=} returning size={size * repititions} end={end}')
         return size * repititions, end
-
-    if not part_1:
-        return decompress_recursive()[0]
-
-    i, size_ = 0, 0
-    while i < len(data):
-        if not data[i] == '(':
-            size_ += 1
-            i += 1
-            continue
-        end_ = data.index(')', i)
-        chars_, repeat_ = map(int, data[i+1:end_].split('x'))
-        size_ += chars_ * repeat_
-        i = end_ + 1 + chars_
-    return size_
+    return decompress_recursive()[0]
 
 
 def day_10(part_1=True) -> int:
