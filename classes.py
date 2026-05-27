@@ -1,5 +1,5 @@
 class Bot:
-    def __init__(self, value: int | None = None, low_bot: int | None = None, high_bot: int | None = None):
+    def __init__(self, value: int | None = None, low_bot: int | str | None = None, high_bot: int | str | None = None):
         self._values = [value] if value is not None else []
         self.low_nghbr = low_bot
         self.high_nghbr = high_bot

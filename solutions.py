@@ -224,7 +224,7 @@ def day_9(part_1=True) -> int:
 
 
 def day_10(part_1=True) -> int:
-    graph: Dict[int, Bot]  = {}
+    graph: Dict[int | str, Bot]  = {}
     bots_with_values, targets = set(), {17 ,61}
     to_search: Set[int] = set()
     def parse(bot_) -> None:
@@ -240,27 +240,35 @@ def day_10(part_1=True) -> int:
             graph[b] = Bot(value=val)
             return
         b, l, h = map(int, re.findall(REGEX_DIGITS, ''.join(digs)))
+        l = f'output {l}' if f'output {l}' in bot_ else l
+        h = f'output {h}' if f'output {h}' in bot_ else h
         if b in graph:
-            graph[b].low_nghbr = l if f'output {l}' not in bot_ else None
-            graph[b].high_nghbr = h if f'output {h}' not in bot_ else None
+            graph[b].low_nghbr, graph[b].high_nghbr = l, h
             return
         graph[b] = Bot(low_bot=l, high_bot=h)
 
     read_input(day=10, parse=parse)
+    outputs = {}
     while to_search:
         b_ = to_search.pop()
         bot = graph[b_]
-        if bot.low == 17 and bot.high == 61:
+        if part_1 and bot.low == 17 and bot.high == 61:
             return b_
-        if (low:=bot.low_nghbr) is not None:
+        if isinstance((low:=bot.low_nghbr), str):
+            int_ = int(low.split()[-1])
+            outputs[int_] = bot.get_low()
+        elif low is not None :
             graph[low].add_value(bot.get_low())
             if graph[low].can_proceed:
                 to_search.add(low)
-        if (high:=bot.high_nghbr) is not None:
+        if isinstance((high:=bot.high_nghbr), str):
+            int_ = int(high.split()[-1])
+            outputs[int_] = bot.get_high()
+        elif high is not None:
             graph[high].add_value(bot.get_high())
             if graph[high].can_proceed:
                 to_search.add(high)
-    return -1
+    return outputs[0] * outputs[1] * outputs[2]
 
 
 if __name__ == '__main__':
