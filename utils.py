@@ -7,7 +7,7 @@ from constants import ADVENT_URI, INPUTS_PATH
 
 def read_input(
         day: int | str,
-        year: int | str = 2015,
+        year: int | str = 2016,
         delim: str | None = '\n',
         parse: Callable[[str], Any] = None
 ) -> List[Any] | str | Any:
