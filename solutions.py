@@ -291,7 +291,7 @@ def day_12(part_1=True) -> int:
         )
     )
 
-    registers = {'a': 0, 'b': 0, 'c': 0, 'd': 0}
+    registers = {'a': 0, 'b': 0, 'c': 0 if part_1 else 1, 'd': 0}
     def modify(register: str, new_val: int) -> None:
         registers[register] = new_val
 
