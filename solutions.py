@@ -275,6 +275,47 @@ def day_10(part_1=True) -> int:
     return outputs[0] * outputs[1] * outputs[2]
 
 
+def day_11(part_1=True) -> int:
+    data = read_input(day=11)
+
+    return NotImplemented
+
+
+def day_12(part_1=True) -> int:
+    Instruction = namedtuple('Instruction', ['action', 'args'])
+    instructions: List[Instruction] = read_input(
+        day=12,
+        parse=lambda x: Instruction(
+            action=(s:=x.split())[0],
+            args=[int(w) if w.lstrip('-').isnumeric() else w for w in s[1:]]
+        )
+    )
+
+    registers = {'a': 0, 'b': 0, 'c': 0, 'd': 0}
+    def modify(register: str, new_val: int) -> None:
+        registers[register] = new_val
+
+    def value(x):
+        return registers[x] if x in registers else x
+
+    actions = {
+        'inc': lambda reg: modify(reg, value(reg) + 1),
+        'dec': lambda reg: modify(reg, value(reg)-1),
+        'cpy': lambda v, reg: modify(reg, value(v))
+    }
+    indx = 0
+    while indx < len(instructions):
+        instruction = instructions[indx]
+        if instruction.action == 'jnz':
+            should_jump = value(instruction.args[0])
+            val = value(instruction.args[1])
+            indx += val if should_jump else 1
+            continue
+        actions[instruction.action](*instruction.args)
+        indx += 1
+    return registers['a']
+
+
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
                                  sys.argv[1:] else range(1, 26)) if
