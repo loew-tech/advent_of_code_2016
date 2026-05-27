@@ -10,6 +10,7 @@ import re
 import sys
 from typing import List, Dict, Set, Tuple, Any
 
+from classes import Bot
 from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALPHAS, ALPHAS_TO_NUMS
 from dbg_utils import print_grid
 from helpers import day_8_build_grid
@@ -220,6 +221,46 @@ def day_9(part_1=True) -> int:
         size += chars * repeat
         i = end + 1 + chars
     return size
+
+
+def day_10(part_1=True) -> int:
+    graph: Dict[int, Bot]  = {}
+    bots_with_values, targets = set(), {17 ,61}
+    to_search: Set[int] = set()
+    def parse(bot_) -> None:
+        instruction, *digs = bot_.split()
+        if instruction == 'value':
+            val, b = map(int, re.findall(REGEX_DIGITS, ''.join(digs)))
+            if b in bots_with_values:
+                to_search.add(b)
+            bots_with_values.add(b)
+            if b in graph:
+                graph[b].add_value(val)
+                return
+            graph[b] = Bot(value=val)
+            return
+        b, l, h = map(int, re.findall(REGEX_DIGITS, ''.join(digs)))
+        if b in graph:
+            graph[b].low_nghbr = l if f'output {l}' not in bot_ else None
+            graph[b].high_nghbr = h if f'output {h}' not in bot_ else None
+            return
+        graph[b] = Bot(low_bot=l, high_bot=h)
+
+    read_input(day=10, parse=parse)
+    while to_search:
+        b_ = to_search.pop()
+        bot = graph[b_]
+        if bot.low == 17 and bot.high == 61:
+            return b_
+        if (low:=bot.low_nghbr) is not None:
+            graph[low].add_value(bot.get_low())
+            if graph[low].can_proceed:
+                to_search.add(low)
+        if (high:=bot.high_nghbr) is not None:
+            graph[high].add_value(bot.get_high())
+            if graph[high].can_proceed:
+                to_search.add(high)
+    return -1
 
 
 if __name__ == '__main__':
