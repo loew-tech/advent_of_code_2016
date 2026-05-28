@@ -343,23 +343,27 @@ def day_13(part_1=True) -> int:
 
 def day_14(part_1=True) -> int:
     salt, indx = read_input(day=14, delim=None), 0
-    pattern, keys = r"(.)\1{2}", []
-    targets = deque([])
-    while indx < 1_600_000:
-        hash_ = md5(f'{salt}{indx}'.encode()).hexdigest()
-        for target, i, limit in [*targets]:
-            if target in hash_:
-                keys.append(i)
-                if len(keys) == 64:
-                    return i
-                targets.remove((target, i, limit))
-                print(f'\t{len(keys)=}')
-        if (match_ := re.search(r'(.)\1\1', hash_)) and len(keys) < 64:
-            target = match_.group()[1] * 5
-            targets.append((target, indx, indx + 1000))
+    pattern, keys = r"(.)\1{2}", set()
+    hash_q = deque([])
+
+    @cache
+    def get_hash(indx_):
+        h = md5(f'{salt}{indx_}'.encode()).hexdigest()
+        for _ in range(2016 * (not part_1)):
+            h = md5(h.encode()).hexdigest()
+        return h
+
+    for i in range(1001):
+        hash_q.append(get_hash(i))
+
+    while len(keys) < 64:
+        hash_ = hash_q.popleft()
+        if match_ := re.search(pattern, hash_):
+            quintuple = match_.group(1) * 5
+            if any(quintuple in future_hash for future_hash in hash_q):
+                keys.add(indx)
         indx += 1
-        while targets and targets[0][2] < indx:
-            targets.popleft()
+        hash_q.append(get_hash(1000 + indx))
     return sorted(keys)[63]
 
 
@@ -375,4 +379,4 @@ if __name__ == '__main__':
             print(f'{day}() = NotImplemented')
             continue
         print(f'{day}() = {funcs[day]()}')
-        # print(f'{day}(part=2) = {funcs[day](part_1=False)}')
+        print(f'{day}(part=2) = {funcs[day](part_1=False)}')
