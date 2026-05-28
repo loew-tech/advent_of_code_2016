@@ -153,25 +153,23 @@ def day_6(part_1=True) -> str:
 
 def day_7(part_1=True) -> int:
     Address = namedtuple('Address', ['sequences', 'hypernets'])
-    def build_addresses(data: List[str]) -> List[Address]:
-        addresses_ = []
-        for address in data:
-            sequences, hypernets = [], []
-            indx, is_hypernet = 0, False
-            while indx < len(address):
-                sequence = []
-                while indx < len(address) and address[indx] not in '[]':
-                    sequence.append(address[indx])
-                    indx += 1
-                if is_hypernet:
-                    hypernets.append(''.join(sequence))
-                else:
-                    sequences.append(''.join(sequence))
-                is_hypernet = not is_hypernet
+    def parse(address: str) -> Address:
+        sequences, hypernets = [], []
+        indx, is_hypernet = 0, False
+        while indx < len(address):
+            sequence = []
+            while indx < len(address) and address[indx] not in '[]':
+                sequence.append(address[indx])
                 indx += 1
-            addresses_.append(Address(sequences, hypernets))
-        return addresses_
-    addresses = build_addresses(read_input(day=7))
+            if is_hypernet:
+                hypernets.append(''.join(sequence))
+            else:
+                sequences.append(''.join(sequence))
+            is_hypernet = not is_hypernet
+            indx += 1
+        return Address(sequences, hypernets)
+
+    addresses: List[Address] = read_input(day=7, parse=parse)
 
     def supports_tls(address: Address) -> bool:
         def has_bridge(str_: List[str]) -> bool:
@@ -193,7 +191,7 @@ def day_7(part_1=True) -> int:
         return False
 
     check = supports_tls if part_1 else supports_ssl
-    return sum(check(address) for address in addresses)
+    return sum(check(addr) for addr in addresses)
 
 
 def day_8(part_1=True) -> int | None:
@@ -206,7 +204,7 @@ def day_8(part_1=True) -> int | None:
 
 def day_9(part_1=True) -> int:
     data = read_input(day=9, delim=None)
-    def decompress_recursive(start=0, stop=float('inf'), repititions=1, depth = 0) -> Tuple[int, int]:
+    def decompress_recursive(start=0, stop=float('inf'), repetitions=1, depth = 0) -> Tuple[int, int]:
         size, count, end = 0, 0, start
         while end < len(data) and end < stop:
             if not data[end] == '(':
@@ -220,48 +218,45 @@ def day_9(part_1=True) -> int:
                 end = term + 1 + chars
                 size += chars * repeats
                 continue
-            size_i, new_end = decompress_recursive(start=term+1, stop=term + 1 + chars, repititions=repeats, depth=depth+1)
+            size_i, end = decompress_recursive(start=term+1, stop=term + 1 + chars, repetitions=repeats, depth=depth + 1)
             size += size_i
-            end = new_end
-        return size * repititions, end
+        return size * repetitions, end
     return decompress_recursive()[0]
 
 
 def day_10(part_1=True) -> int:
     graph: Dict[int | str, Bot]  = {}
-    bots_with_values, targets = set(), {17 ,61}
     to_search: Set[int] = set()
     def parse(bot_) -> None:
         instruction, *digs = bot_.split()
         if instruction == 'value':
-            val, b = map(int, re.findall(REGEX_DIGITS, ''.join(digs)))
-            if b in bots_with_values:
-                to_search.add(b)
-            bots_with_values.add(b)
-            if b in graph:
-                graph[b].add_value(val)
+            val, b_ = map(int, re.findall(REGEX_DIGITS, ''.join(digs)))
+            if b_ in graph:
+                graph[b_].add_value(val)
+                if graph[b_].can_proceed:
+                    to_search.add(b_)
                 return
-            graph[b] = Bot(value=val)
+            graph[b_] = Bot(value=val)
             return
-        b, l, h = map(int, re.findall(REGEX_DIGITS, ''.join(digs)))
+        b_, l, h = map(int, re.findall(REGEX_DIGITS, ''.join(digs)))
         l = f'output {l}' if f'output {l}' in bot_ else l
         h = f'output {h}' if f'output {h}' in bot_ else h
-        if b in graph:
-            graph[b].low_nghbr, graph[b].high_nghbr = l, h
+        if b_ in graph:
+            graph[b_].low_nghbr, graph[b_].high_nghbr = l, h
             return
-        graph[b] = Bot(low_bot=l, high_bot=h)
+        graph[b_] = Bot(low_bot=l, high_bot=h)
 
     read_input(day=10, parse=parse)
     outputs = {}
     while to_search:
-        b_ = to_search.pop()
-        bot = graph[b_]
+        b = to_search.pop()
+        bot = graph[b]
         if part_1 and bot.low == 17 and bot.high == 61:
-            return b_
+            return b
         if isinstance((low:=bot.low_nghbr), str):
             int_ = int(low.split()[-1])
             outputs[int_] = bot.get_low()
-        elif low is not None :
+        elif low is not None:
             graph[low].add_value(bot.get_low())
             if graph[low].can_proceed:
                 to_search.add(low)
@@ -314,6 +309,36 @@ def day_12(part_1=True) -> int:
         actions[instruction.action](*instruction.args)
         indx += 1
     return registers['a']
+
+
+def day_13(part_1=True) -> int:
+    fav_number: int = read_input(day=13, delim=None, parse=int)
+    def inbounds(y_, x_: int) -> bool:
+        return 0 <= y_ and 0 <= x_
+
+    @cache
+    def is_valid(y_, x_: int) -> bool:
+        if not inbounds(y_, x_):
+            return False
+        num = x_ * x_ + 3 * x_ + 2 * x_ * y_ + y_ + y_ * y_ + fav_number
+        return num.bit_count() % 2 == 0
+
+    target_y, target_x = 39, 31
+    count, visited, to_search = 0, set(), {(1, 1)}
+    while to_search:
+        if not part_1 and count == 51:
+            return len(visited)
+        next_search = set()
+        for y, x in to_search:
+            visited.add((y, x))
+            for yi, xi in CARDINAL_DIRECTIONS:
+                if (y+yi, x+xi) not in visited and is_valid(y+yi, x+xi):
+                    if y+yi == target_y and x+xi == target_x:
+                        return count
+                    next_search.add((y+yi, x+xi))
+        count += 1
+        to_search = next_search
+    return -1
 
 
 if __name__ == '__main__':
