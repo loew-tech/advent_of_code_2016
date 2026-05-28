@@ -1,5 +1,5 @@
 import math
-from collections import defaultdict, Counter, namedtuple
+from collections import defaultdict, Counter, namedtuple, deque
 from functools import reduce, cache
 from hashlib import md5
 from itertools import permutations
@@ -341,6 +341,28 @@ def day_13(part_1=True) -> int:
     return -1
 
 
+def day_14(part_1=True) -> int:
+    salt, indx = read_input(day=14, delim=None), 0
+    pattern, keys = r"(.)\1{2}", []
+    targets = deque([])
+    while indx < 1_600_000:
+        hash_ = md5(f'{salt}{indx}'.encode()).hexdigest()
+        for target, i, limit in [*targets]:
+            if target in hash_:
+                keys.append(i)
+                if len(keys) == 64:
+                    return i
+                targets.remove((target, i, limit))
+                print(f'\t{len(keys)=}')
+        if (match_ := re.search(r'(.)\1\1', hash_)) and len(keys) < 64:
+            target = match_.group()[1] * 5
+            targets.append((target, indx, indx + 1000))
+        indx += 1
+        while targets and targets[0][2] < indx:
+            targets.popleft()
+    return sorted(keys)[63]
+
+
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
                                  sys.argv[1:] else range(1, 26)) if
@@ -353,4 +375,4 @@ if __name__ == '__main__':
             print(f'{day}() = NotImplemented')
             continue
         print(f'{day}() = {funcs[day]()}')
-        print(f'{day}(part=2) = {funcs[day](part_1=False)}')
+        # print(f'{day}(part=2) = {funcs[day](part_1=False)}')
