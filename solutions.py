@@ -380,6 +380,25 @@ def day_15(part_1=True) -> int:
     return time
 
 
+def day_16(part_1=True) -> str:
+    size = 272 if part_1 else 35651584
+    data: str | List[bool]= read_input(day=16, delim=None)
+    while (n:=len(data)) < size:
+        b = ['1' if data[i] == '0' else '0' for i in range(n-1, -1, -1)]
+        data = f'{data}0{"".join(b)}'
+
+    def get_checksum() -> List[bool]:
+        ret = []
+        n = min(len(data), size)
+        for i_ in range(0, n-1, 2):
+            ret.append(data[i_] == data[i_+1])
+        return  ret
+
+    while not len(data:=get_checksum()) % 2:
+        pass
+    return ''.join(['1' if b else '0' for b in data])
+
+
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
                                  sys.argv[1:] else range(1, 26)) if
