@@ -10,7 +10,7 @@ import re
 import sys
 from typing import List, Dict, Set, Tuple, Any
 
-from classes import Bot
+from classes import Bot, Disc
 from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALPHAS, ALPHAS_TO_NUMS
 from dbg_utils import print_grid
 from helpers import day_8_build_grid
@@ -326,7 +326,7 @@ def day_13(part_1=True) -> int:
     target_y, target_x = 39, 31
     count, visited, to_search = 0, set(), {(1, 1)}
     while to_search:
-        if not part_1 and count == 51:
+        if not part_1 and count > 50:
             return len(visited)
         next_search = set()
         for y, x in to_search:
@@ -365,6 +365,19 @@ def day_14(part_1=True) -> int:
         indx += 1
         hash_q.append(get_hash(1000 + indx))
     return sorted(keys)[63]
+
+
+def day_15(part_1=True) -> int:
+    discs: List[Disc] = read_input(day=15, parse=Disc.from_str)
+    if not part_1:
+        discs.append(Disc(max(d.id for d in discs) + 1, 11, 0))
+
+    time, lcm = 0, 1
+    for disc in discs:
+        while not disc.is_solution(time):
+            time += lcm
+        lcm = math.lcm(lcm, disc.num_pos)
+    return time
 
 
 if __name__ == '__main__':

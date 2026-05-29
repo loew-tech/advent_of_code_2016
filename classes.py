@@ -1,3 +1,11 @@
+import math
+import re
+from itertools import count
+from typing import Generator
+
+from constants import REGEX_DIGITS
+
+
 class Bot:
     def __init__(self, value: int | None = None, low_bot: int | str | None = None, high_bot: int | str | None = None):
         self._values = [value] if value is not None else []
@@ -29,3 +37,22 @@ class Bot:
 
     def __repr__(self):
         return f'Bot(values={self._values}, low_nghbr={self.low_nghbr}, hihg_nghbr={self.high_nghbr})'
+
+
+class Disc:
+
+    def __init__(self, id_, num_pos, start_pos: int):
+        self.id = id_
+        self.num_pos = num_pos
+        self.start_pos = start_pos
+
+    @classmethod
+    def from_str(cls, s: str) -> Disc:
+        id_, num_pos, _, start_pos = map(int,re.findall(REGEX_DIGITS, s))
+        return cls(id_, num_pos, start_pos)
+
+    def is_solution(self, time: int) -> bool:
+        return not ((time + self.id + self.start_pos) % self.num_pos)
+
+    def __repr__(self):
+        return f'Disc(_id={self.id}, num_pos={self.num_pos}, start_pos={self.start_pos})'
