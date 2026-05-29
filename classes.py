@@ -74,14 +74,3 @@ class LLNode:
         prev = self.prev and self.prev.id
         next_ = self.next and self.next.id
         return f'LLNode(id={self.id}, val={self.val}, {prev=}, {next_=})'
-
-class ElfNode(LLNode):
-    def __init__(self, id_=None, val=0, prev=None, next_=None):
-        super().__init__(id_, val, prev, next_)
-        self.skip = None
-
-    def __repr__(self):
-        prev = self.prev and self.prev.id
-        next_ = self.next and self.next.id
-        skip = self.skip and self.skip.id
-        return f'ElfNode(id={self.id}, val={self.val}, {prev=}, {next_=}, {skip=})'

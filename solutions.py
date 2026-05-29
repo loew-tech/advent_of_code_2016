@@ -440,36 +440,35 @@ def day_18(part_1=True) -> int:
 
 def day_19(part_1=True) -> int:
     num_elves: int = read_input(day=19, delim=None, parse=int)
-    ll_head = current = ElfNode(id_=1, val=1)
-    slow, mid = ll_head, None
+    # num_elves = 5
+    ll_head = current = LLNode(id_=1, val=1)
     for i in range(1, num_elves + 1):
         if i == num_elves:
             current.next = ll_head
             ll_head.prev = current
             break
-        current.next = ElfNode(id_=i+1, val=1, prev=current)
+        current.next = LLNode(id_=i + 1, val=1, prev=current)
         current = current.next
-        if i >= num_elves // 2:
-            slow.skip = current
-            slow = slow.next
+        if i + 1 == (num_elves // 2) + 1:
+            opposite = current
 
     current = ll_head
-    while slow.skip is None:
-        slow.skip = current
-        slow = slow.next
-        current = current.next
-
-    current = ll_head
-    while not current.next == current:
-        node = current.next
-        for _ in range(1, num_elves//2):
-            if part_1:
-                break
-            node = node.next
-        num_elves -= not part_1
-        current.val += node.val
-        node.delete()
-        current = current.next
+    while current.next is not current:
+        if part_1:
+            node = current.next
+            current.val += node.val
+            node.delete()
+            current = current.next
+        else:
+            node = opposite
+            current.val += node.val
+            if num_elves % 2 == 1:
+                opposite = opposite.next.next
+            else:
+                opposite = opposite.next
+            num_elves -= 1
+            node.delete()
+            current = current.next
     return current.id
 
 if __name__ == '__main__':
