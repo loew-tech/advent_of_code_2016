@@ -56,3 +56,32 @@ class Disc:
 
     def __repr__(self):
         return f'Disc(_id={self.id}, num_pos={self.num_pos}, start_pos={self.start_pos})'
+
+class LLNode:
+
+    def __init__(self, id_=None, val=0, prev=None, next_=None):
+        self.id, self.val, self.prev, self.next = id_, val, prev, next_
+
+    def delete(self):
+        neighbor = self.prev if self.prev is not self else None
+        self.prev.next = self.next
+        self.next.prev = self.prev
+        self.next = None
+        self.prev = None
+        return neighbor
+
+    def __repr__(self):
+        prev = self.prev and self.prev.id
+        next_ = self.next and self.next.id
+        return f'LLNode(id={self.id}, val={self.val}, {prev=}, {next_=})'
+
+class ElfNode(LLNode):
+    def __init__(self, id_=None, val=0, prev=None, next_=None):
+        super().__init__(id_, val, prev, next_)
+        self.skip = None
+
+    def __repr__(self):
+        prev = self.prev and self.prev.id
+        next_ = self.next and self.next.id
+        skip = self.skip and self.skip.id
+        return f'ElfNode(id={self.id}, val={self.val}, {prev=}, {next_=}, {skip=})'

@@ -10,7 +10,7 @@ import re
 import sys
 from typing import List, Dict, Set, Tuple, Any
 
-from classes import Bot, Disc
+from classes import Bot, Disc, LLNode, ElfNode
 from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALPHAS, ALPHAS_TO_NUMS
 from dbg_utils import print_grid
 from helpers import day_8_build_grid
@@ -437,6 +437,40 @@ def day_18(part_1=True) -> int:
         safe += row.count(False)
     return safe
 
+
+def day_19(part_1=True) -> int:
+    num_elves: int = read_input(day=19, delim=None, parse=int)
+    ll_head = current = ElfNode(id_=1, val=1)
+    slow, mid = ll_head, None
+    for i in range(1, num_elves + 1):
+        if i == num_elves:
+            current.next = ll_head
+            ll_head.prev = current
+            break
+        current.next = ElfNode(id_=i+1, val=1, prev=current)
+        current = current.next
+        if i >= num_elves // 2:
+            slow.skip = current
+            slow = slow.next
+
+    current = ll_head
+    while slow.skip is None:
+        slow.skip = current
+        slow = slow.next
+        current = current.next
+
+    current = ll_head
+    while not current.next == current:
+        node = current.next
+        for _ in range(1, num_elves//2):
+            if part_1:
+                break
+            node = node.next
+        num_elves -= not part_1
+        current.val += node.val
+        node.delete()
+        current = current.next
+    return current.id
 
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if

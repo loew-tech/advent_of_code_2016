@@ -10,7 +10,7 @@ def read_input(
         year: int | str = 2016,
         delim: str | None = '\n',
         parse: Callable[[str], Any] = None
-) -> List[Any] | str | Any:
+) -> List[str|int|Any] | str | int | Any:
     if os.path.exists(f'{INPUTS_PATH}{day}.txt'):
         with open(f'{INPUTS_PATH}{day}.txt') as in_:
             return _process_input(in_.read(), delim, parse)
