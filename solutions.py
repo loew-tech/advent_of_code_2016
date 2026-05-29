@@ -389,14 +389,42 @@ def day_16(part_1=True) -> str:
 
     def get_checksum() -> List[bool]:
         ret = []
-        n = min(len(data), size)
-        for i_ in range(0, n-1, 2):
+        n_ = min(len(data), size)
+        for i_ in range(0, n_-1, 2):
             ret.append(data[i_] == data[i_+1])
         return  ret
 
     while not len(data:=get_checksum()) % 2:
         pass
     return ''.join(['1' if b else '0' for b in data])
+
+
+def day_17(part_1=True) -> str | int:
+    def inbounds(y_, x_: int) -> bool:
+        return 0 <= y_ < 4 and 0 <= x_ < 4
+
+    hash_ = read_input(day=17, delim=None)
+    directions = {'U': (-1, 0), 'D': (1, 0), 'L': (0, -1), 'R': (0, 1)}
+    open_ = 'bcdef'
+    to_search, stack, max_ = deque([(0, 0, '')]), [(0, 0, '')], 0
+    while (part_1 and deque) or (not part_1 and stack):
+        search = to_search if part_1 else stack
+        pop_f = search.popleft if part_1 else search.pop
+        y, x, path = pop_f()
+        hashed = md5(f'{hash_}{path}'.encode()).hexdigest()[:4]
+        for direction, door in zip('UDLR', hashed):
+            if door not in open_:
+                continue
+            yi, xi = directions[direction]
+            yn, xn = y + yi, x + xi
+            if yn == 3 and xn == 3:
+                if part_1:
+                    return f'{path}{direction}'
+                max_ = max(max_, len(path) + 1)
+                continue
+            if inbounds(yn, xn):
+                search.append((yn, xn, f'{path}{direction}'))
+    return max_
 
 
 if __name__ == '__main__':
