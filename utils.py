@@ -34,7 +34,7 @@ def _process_input(
         text: str, delim: str | None,
         parse: Callable[[List[str] | str], Any]
 ) -> Any:
-    data = text.strip().split(delim) if delim else text
+    data = text.strip().split(delim) if delim else text.strip()
     if parse is None:
         return data
     return [parse(e) for e in data] if type(data) == list else parse(data)

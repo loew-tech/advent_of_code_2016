@@ -427,6 +427,17 @@ def day_17(part_1=True) -> str | int:
     return max_
 
 
+def day_18(part_1=True) -> int:
+    row = [c == '^' for c in read_input(day=18, delim=None)]
+    N, num_rows, safe = len(row), 40 if part_1 else 400_000, row.count(False)
+    for _ in range(1, num_rows):
+        old = [False] + row + [False]
+        for i in range(1, N+1):
+            row[i-1] = old[i-1] ^ old[i+1]
+        safe += row.count(False)
+    return safe
+
+
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if
                                  sys.argv[1:] else range(1, 26)) if
