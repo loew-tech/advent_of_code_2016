@@ -2,7 +2,7 @@ import math
 import re
 from collections import namedtuple
 from itertools import count
-from typing import Generator, List, Tuple, Union
+from typing import Generator, List, Tuple, Union, Iterable
 
 from constants import REGEX_DIGITS
 
@@ -137,11 +137,10 @@ class InstructionExecuter:
         char_ = self.state.pop(x)
         self.state.insert(y, char_)
 
-    def execute(self, instructions: List[Instruction], part_1: bool) -> str:
+    def execute(self, instructions: Iterable[Instruction], part_1: bool) -> str:
         """
         Executes instructions, performing inverse if part_1 is true
         """
-
         ops = {
             'swap_position': self._swap_position,
             'swap_letter': self._swap_letter,

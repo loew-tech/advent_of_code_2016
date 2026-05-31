@@ -1,4 +1,5 @@
 import math
+from bisect import bisect_right, bisect_left
 from collections import defaultdict, Counter, namedtuple, deque
 from functools import cache
 from hashlib import md5
@@ -502,6 +503,22 @@ def day_21(part_1=True) -> str:
     init_state = 'abcdefgh' if part_1 else 'fbgdceah'
     executor = InstructionExecuter(init_state)
     return executor.execute(active_instructions, part_1)
+
+
+def day_22(part_1=True) -> int:
+    Node = namedtuple('Node', ['id_', 'x', 'y', 'size', 'used', 'avail', 'use'])
+    def parse(nodes_str: str) -> List[Node]:
+        nodes = []
+        for n in nodes_str.split('\n')[2:]:
+            id_, vals = n.split()[0], list(map(int, re.findall(REGEX_DIGITS, n)))
+            nodes.append(Node(id_, *vals))
+        return nodes
+
+    data: List[Node] = read_input(day=22, delim=None, parse=parse)
+    used_nodes = [n.used for n in data if n.used]
+    available_vals = sorted([n.avail for n in data])
+    num_avail = len(available_vals)
+    return sum(num_avail - bisect_left(available_vals, n) for n in used_nodes)
 
 
 if __name__ == '__main__':
