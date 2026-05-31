@@ -498,9 +498,10 @@ def day_21(part_1=True) -> str:
         return Instruction(action=f'{act}_{other[0]}', args=args)
 
     instructions: List[Instruction] = read_input(day=21, parse=parse)
+    active_instructions = instructions if part_1 else reversed(instructions)
     init_state = 'abcdefgh' if part_1 else 'fbgdceah'
     executor = InstructionExecuter(init_state)
-    return executor.execute(instructions)
+    return executor.execute(active_instructions, part_1)
 
 
 if __name__ == '__main__':

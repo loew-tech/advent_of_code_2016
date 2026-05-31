@@ -94,9 +94,8 @@ class InstructionExecuter:
         index_a, index_b = self.state.index(a), self.state.index(b)
         self._swap_position(index_a, index_b)
 
-    def _reverse(self, x: int, y: int) -> None:
+    def _reverse(self, x, y: int) -> None:
         """Reverses the slice of state from index x_ to y_ (inclusive)."""
-        # Note: Added + 1 to the upper bound so that index y_ is included in the reversal
         self.state = self.state[:x] + self.state[x:y + 1][::-1] + self.state[y + 1:]
 
     def _rotate_direction(self, move_right: bool, num_moves: int) -> None:
@@ -121,6 +120,16 @@ class InstructionExecuter:
             num_moves += 1
         self._rotate_direction(move_right=True, num_moves=num_moves)
 
+    def _rotate_letter_inverse(self, letter: str) -> None:
+        """
+        Undoes a rotation based on a letter position using
+        a predefined lookup mapping for an 8-character array.
+        """
+        undo_map = {0: 1, 1: 1, 2: 6, 3: 2, 4: 7, 5: 3, 6: 8, 7: 4}
+        index = self.state.index(letter)
+        num_moves = undo_map[index]
+        self._rotate_direction(move_right=False, num_moves=num_moves)
+
     def _move(self, x, y: int) -> None:
         """
         Deletes char c at index x and inserts it at index y.
@@ -128,17 +137,21 @@ class InstructionExecuter:
         char_ = self.state.pop(x)
         self.state.insert(y, char_)
 
-    def execute(self, instructions: List[Instruction]) -> str:
+    def execute(self, instructions: List[Instruction], part_1: bool) -> str:
+        """
+        Executes instructions, performing inverse if part_1 is true
+        """
+
         ops = {
             'swap_position': self._swap_position,
             'swap_letter': self._swap_letter,
-            'rotate_left': lambda x: self._rotate_direction(False, x),
-            'rotate_right': lambda x: self._rotate_direction(True, x),
-            'move_position': self._move,
-            'rotate': self._rotate_letter,
+            'rotate_left': lambda x: self._rotate_direction(not part_1, x),
+            'rotate_right': lambda x: self._rotate_direction(part_1, x),
+            'move_position': lambda x, y: self._move(x, y) if part_1 else self._move(y, x),
+            'rotate': self._rotate_letter if part_1 else self._rotate_letter_inverse,
             'reverse': self._reverse
         }
-        for i, (action, args) in enumerate(instructions, start=1):
+        for action, args in instructions:
             ops[action](*args)
         return ''.join(self.state)
 
