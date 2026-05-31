@@ -1,17 +1,15 @@
 import math
 from collections import defaultdict, Counter, namedtuple, deque
-from functools import reduce, cache
+from functools import cache
 from hashlib import md5
-from itertools import permutations
-from json import loads
-import heapq
 import inspect
 import re
 import sys
 from typing import List, Dict, Set, Tuple, Any
+from unittest.mock import mock_open
 
-from classes import Bot, Disc, LLNode, ElfNode
-from constants import DIRECTIONS, CARDINAL_DIRECTIONS, REGEX_WORDS, REGEX_DIGITS, NUMS_TO_ALPHAS, ALPHAS_TO_NUMS
+from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter
+from constants import *
 from dbg_utils import print_grid
 from helpers import day_8_build_grid
 from utils import read_input, get_inbounds
@@ -204,7 +202,8 @@ def day_8(part_1=True) -> int | None:
 
 def day_9(part_1=True) -> int:
     data = read_input(day=9, delim=None)
-    def decompress_recursive(start=0, stop=float('inf'), repetitions=1, depth = 0) -> Tuple[int, int]:
+    def decompress_recursive(start=0, stop=float('inf'),
+                             repetitions=1, depth = 0) -> Tuple[int, int]:
         size, count, end = 0, 0, start
         while end < len(data) and end < stop:
             if not data[end] == '(':
@@ -272,7 +271,7 @@ def day_10(part_1=True) -> int:
 
 def day_11(part_1=True) -> int:
     data = read_input(day=11)
-
+    data.sort(key=lambda x: (x[0], -x[1]))
     return NotImplemented
 
 
@@ -470,6 +469,39 @@ def day_19(part_1=True) -> int:
             node.delete()
             current = current.next
     return current.id
+
+def day_20(part_1=True) -> int:
+    ip_addresses: List[Tuple[int, int]] = read_input(day=20, parse=lambda x: tuple(map(int, x.split('-'))))
+    ip_addresses.sort()
+    current_ip, valid_count = 0, 0
+    for start, stop in ip_addresses:
+        if current_ip < start:
+            valid_count += 1
+            if part_1:
+                return current_ip
+        current_ip = max(current_ip, stop+1)
+    return valid_count
+
+
+def day_21(part_1=True) -> str:
+    def parse(s: str) -> Instruction:
+        act, *other = s.split()
+        args = list(map(int, re.findall(REGEX_DIGITS, ''.join(other))))
+        if act == 'reverse':
+            return Instruction(action=act, args=args)
+        if act == 'rotate' and other[0] not in {'left', 'right'}:
+            args_ = [other[-1]]
+            return Instruction(action=act, args=args_)
+        if act == 'swap' and other[0] == 'letter':
+            args_ = [other[1], other[-1]]
+            return Instruction(action='swap_letter', args=args_)
+        return Instruction(action=f'{act}_{other[0]}', args=args)
+
+    instructions: List[Instruction] = read_input(day=21, parse=parse)
+    init_state = 'abcdefgh' if part_1 else 'fbgdceah'
+    executor = InstructionExecuter(init_state)
+    return executor.execute(instructions)
+
 
 if __name__ == '__main__':
     args = (f'day_{i}' for i in (sys.argv[1:] if

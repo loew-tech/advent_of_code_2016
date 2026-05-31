@@ -1,7 +1,8 @@
 import math
 import re
+from collections import namedtuple
 from itertools import count
-from typing import Generator
+from typing import Generator, List, Tuple, Union
 
 from constants import REGEX_DIGITS
 
@@ -74,3 +75,73 @@ class LLNode:
         prev = self.prev and self.prev.id
         next_ = self.next and self.next.id
         return f'LLNode(id={self.id}, val={self.val}, {prev=}, {next_=})'
+
+
+Instruction = namedtuple('Instruction', ['action', 'args'])
+
+
+class InstructionExecuter:
+
+    def __init__(self, init_state: str):
+        self.state: List[str] = list(init_state)
+
+    def _swap_position(self, x: int, y: int) -> None:
+        """Swaps elements at indices x_ and y_."""
+        self.state[x], self.state[y] = self.state[y], self.state[x]
+
+    def _swap_letter(self, a, b: str) -> None:
+        "Swaps first occuurrences of letters a and b."
+        index_a, index_b = self.state.index(a), self.state.index(b)
+        self._swap_position(index_a, index_b)
+
+    def _reverse(self, x: int, y: int) -> None:
+        """Reverses the slice of state from index x_ to y_ (inclusive)."""
+        # Note: Added + 1 to the upper bound so that index y_ is included in the reversal
+        self.state = self.state[:x] + self.state[x:y + 1][::-1] + self.state[y + 1:]
+
+    def _rotate_direction(self, move_right: bool, num_moves: int) -> None:
+        """Rotates the state right or left by num_moves."""
+
+        if not (shift := num_moves % self.n):
+            return
+
+        if move_right:
+            self.state = self.state[-shift:] + self.state[:-shift]
+        else:
+            self.state = self.state[shift:] + self.state[:shift]
+
+    def _rotate_letter(self, letter: str) -> None:
+        """
+        Rotates the string right based on the index of the given letter.
+        Steps: 1 + index + (1 if index >= 4 else 0)
+        """
+        index = self.state.index(letter)
+        num_moves = 1 + index
+        if index >= 4:
+            num_moves += 1
+        self._rotate_direction(move_right=True, num_moves=num_moves)
+
+    def _move(self, x, y: int) -> None:
+        """
+        Deletes char c at index x and inserts it at index y.
+        """
+        char_ = self.state.pop(x)
+        self.state.insert(y, char_)
+
+    def execute(self, instructions: List[Instruction]) -> str:
+        ops = {
+            'swap_position': self._swap_position,
+            'swap_letter': self._swap_letter,
+            'rotate_left': lambda x: self._rotate_direction(False, x),
+            'rotate_right': lambda x: self._rotate_direction(True, x),
+            'move_position': self._move,
+            'rotate': self._rotate_letter,
+            'reverse': self._reverse
+        }
+        for i, (action, args) in enumerate(instructions, start=1):
+            ops[action](*args)
+        return ''.join(self.state)
+
+    @property
+    def n(self):
+        return len(self.state)

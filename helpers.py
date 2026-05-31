@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Tuple, Union
 
 from constants import REGEX_DIGITS
 from dbg_utils import print_grid
