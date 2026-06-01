@@ -6,6 +6,7 @@ from hashlib import md5
 import inspect
 import re
 import sys
+from itertools import permutations
 from typing import List, Dict, Set, Tuple, Any
 from unittest.mock import mock_open
 
@@ -559,9 +560,6 @@ def day_23(part_1=True) -> int:
     }
     indx = 0
     while indx < len(instructions):
-        if indx < 0:
-            print('indx err', indx)
-            return -1
         instruction = instructions[indx]
         if instruction.action == 'jnz':
             should_jump = value(instruction.args[0])
@@ -575,6 +573,43 @@ def day_23(part_1=True) -> int:
         actions[instruction.action](*instruction.args)
         indx += 1
     return registers['a']
+
+
+def day_24(part_1=True) -> int:
+    grid: List[str] = read_input(day=24)
+    locs = {val: (y, x) for y, row in enumerate(grid) for x, val in enumerate(row) if val.isnumeric()}
+    num_vals = len(locs)
+
+    def bfs(start_str: str) -> Dict[str, int]:
+        to_search, visited, count = {locs[start_str]}, set(), 0
+        distances = {k: dct[start_str] for k, dct in lookup.items() if start_str in dct}
+        distances[start_str] = 0
+        while to_search and (count:=count+1) and len(distances) < num_vals:
+            next_search = set()
+            for y_, x_ in to_search:
+                visited.add((y_, x_))
+                for yi, xi in CARDINAL_DIRECTIONS:
+                    if (y_+yi, x_+xi) not in visited:
+                        val_: str = grid[y_+yi][x_+xi]
+                        if is_loc:=val_ in locs:
+                            distances[val_] = count
+                        if val_ == '.' or is_loc:
+                            next_search.add((y_+yi, x_+xi))
+            to_search = next_search
+        return distances
+
+    lookup = {}
+    for location in locs:
+        lookup[location] = bfs(location)
+
+    min_ = float('inf')
+    for perm in permutations(''.join(k for k in locs.keys() if not k == '0')):
+        current, distance = '0', 0
+        for location in perm:
+            distance += lookup[current][location]
+            current = location
+        min_ = min(min_, distance + lookup[current]['0'] * (not part_1))
+    return min_
 
 
 if __name__ == '__main__':
