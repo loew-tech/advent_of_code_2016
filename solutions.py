@@ -277,7 +277,6 @@ def day_11(part_1=True) -> int:
 
 
 def day_12(part_1=True) -> int:
-    Instruction = namedtuple('Instruction', ['action', 'args'])
     instructions: List[Instruction] = read_input(
         day=12,
         parse=lambda x: Instruction(
@@ -519,6 +518,63 @@ def day_22(part_1=True) -> int:
     available_vals = sorted([n.avail for n in data])
     num_avail = len(available_vals)
     return sum(num_avail - bisect_left(available_vals, n) for n in used_nodes)
+
+
+def day_23(part_1=True) -> int:
+    instructions: List[Instruction] = read_input(
+        day=23,
+        parse=lambda x: Instruction(
+            action=(s:=x.split())[0],
+            args=[int(w) if w.lstrip('-').isnumeric() else w for w in s[1:]]
+        )
+    )
+
+    registers = {'a': 7, 'b': 0, 'c': 0 if part_1 else 1, 'd': 0}
+    def modify(register: str, new_val: int) -> None:
+        registers[register] = new_val
+
+    def value(x):
+        return registers[x] if x in registers else x
+
+    def handle_toggle(i, x: int | str) -> None:
+        if (indx_ := value(x) + i) >= len(instructions):
+            return
+        instruction_ = instructions[indx_]
+        match instruction_.action:
+            case 'inc':
+                instructions[indx_] = Instruction(action='dec', args=instruction_.args)
+            case 'dec' | 'tgl':
+                instructions[indx_] = Instruction(action='inc', args=instruction_.args)
+            case 'cpy':
+                instructions[indx_] = Instruction(action='jnz', args=instruction_.args)
+            case 'jnz':
+                instructions[indx_] = Instruction(action='cpy', args=instruction_.args)
+            case _:
+                print("Unknown Status", instruction_.action)
+
+    actions = {
+        'inc': lambda reg: modify(reg, value(reg) + 1),
+        'dec': lambda reg: modify(reg, value(reg)-1),
+        'cpy': lambda v, reg: modify(reg, value(v))
+    }
+    indx = 0
+    while indx < len(instructions):
+        if indx < 0:
+            print('indx err', indx)
+            return -1
+        instruction = instructions[indx]
+        if instruction.action == 'jnz':
+            should_jump = value(instruction.args[0])
+            val = value(instruction.args[1])
+            indx += val if should_jump else 1
+            continue
+        if instruction.action == 'tgl':
+            handle_toggle(indx, instruction.args[0])
+            indx += 1
+            continue
+        actions[instruction.action](*instruction.args)
+        indx += 1
+    return registers['a']
 
 
 if __name__ == '__main__':
