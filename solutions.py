@@ -6,7 +6,7 @@ from hashlib import md5
 import inspect
 import re
 import sys
-from itertools import permutations
+from itertools import permutations, combinations
 from typing import List, Dict, Set, Tuple, Any
 from unittest.mock import mock_open
 
@@ -272,9 +272,96 @@ def day_10(part_1=True) -> int:
 
 
 def day_11(part_1=True) -> int:
-    data = read_input(day=11)
-    data.sort(key=lambda x: (x[0], -x[1]))
-    return NotImplemented
+    def parse(lines: str) -> Dict[str, List[int, int]]:
+        pairs = defaultdict(lambda: [None, None])
+        for i_, line in enumerate(lines.split('\n')):
+            l_ = line.split()
+            for j_ in range(len(l_) - 1):
+                mol = l_[j_].split('-')[0]
+                if 'generator' in l_[j_ + 1]:
+                    pairs[mol][0] = i_
+                elif 'microchip' in l_[j_ + 1]:
+                    pairs[mol][1] = i_
+        return pairs
+
+    def canonical(state_):
+        elevator, pairs = state_
+        return (
+            elevator,
+            tuple(sorted(pairs))
+        )
+
+    def is_floor_safe(floor, pairs) -> bool:
+        gens, chips = set(), set()
+        for i, (g, m) in enumerate(pairs):
+            if g == floor:
+                gens.add(i)
+            if m == floor:
+                chips.add(i)
+        if not gens:
+            return True
+        for chip in chips:
+            if chip not in gens:
+                return False
+        return True
+
+    def state_safe(pairs):
+        for floor in range(4):
+            if not is_floor_safe(floor, pairs):
+                return False
+        return True
+
+    def neighbors(state_):
+        elevator, pairs = state_
+        items = []
+        for i, (g, m) in enumerate(pairs):
+            if g == elevator:
+                items.append(('G', i))
+            if m == elevator:
+                items.append(('M', i))
+        for direction in (-1, 1):
+            new_floor = elevator + direction
+            if not (0 <= new_floor < 4):
+                continue
+            for r in (1, 2):
+                for load in combinations(items, r):
+                    new_pairs = [list(p) for p in pairs]
+                    for typ, idx in load:
+                        if typ == 'G':
+                            new_pairs[idx][0] = new_floor
+                        else:
+                            new_pairs[idx][1] = new_floor
+                    new_pairs = tuple(
+                        tuple(p)
+                        for p in new_pairs
+                    )
+                    if state_safe(new_pairs):
+                        yield (
+                            new_floor,
+                            new_pairs
+                        )
+
+    def goal(state_):
+        _, pairs = state_
+        return all(
+            g == 3 and m == 3
+            for g, m in pairs
+        )
+
+    f: Dict[str, List[int, int]] = read_input(day=11, delim=None, parse=parse)
+    floors = canonical((0, [tuple(v) for v in f.values()]))
+    q, visited = deque([(floors, 0)]), set()
+    while q:
+        state, steps = q.popleft()
+        if goal(state):
+            return steps
+
+        for nxt in neighbors(state):
+            if (key := canonical(nxt)) in visited:
+                continue
+            visited.add(key)
+            q.append((nxt, steps + 1))
+    return -1
 
 
 def day_12(part_1=True) -> int:
@@ -561,6 +648,7 @@ def day_23(part_1=True) -> int:
     indx = 0
     while indx < len(instructions):
         instruction = instructions[indx]
+        print(f'{indx}. {instruction} {registers}')
         if instruction.action == 'jnz':
             should_jump = value(instruction.args[0])
             val = value(instruction.args[1])
@@ -623,5 +711,5 @@ if __name__ == '__main__':
         if day not in funcs:
             print(f'{day}() = NotImplemented')
             continue
-        print(f'{day}() = {funcs[day]()}')
+        # print(f'{day}() = {funcs[day]()}')
         print(f'{day}(part=2) = {funcs[day](part_1=False)}')
