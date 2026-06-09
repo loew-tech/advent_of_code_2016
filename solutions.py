@@ -10,10 +10,10 @@ from itertools import permutations, combinations
 from typing import List, Dict, Set, Tuple, Any
 from unittest.mock import mock_open
 
-from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter
+from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter, MemoryNode
 from constants import *
 from dbg_utils import print_grid
-from helpers import day_8_build_grid
+from helpers import day_8_build_grid, day_22_bfs
 from utils import read_input, get_inbounds
 
 
@@ -596,15 +596,20 @@ def day_21(part_1=True) -> str:
 
 
 def day_22(part_1=True) -> int:
-    Node = namedtuple('Node', ['id_', 'x', 'y', 'size', 'used', 'avail', 'use'])
-    def parse(nodes_str: str) -> List[Node]:
+
+    def parse(nodes_str: str) -> List[MemoryNode]:
         nodes = []
         for n in nodes_str.split('\n')[2:]:
             id_, vals = n.split()[0], list(map(int, re.findall(REGEX_DIGITS, n)))
-            nodes.append(Node(id_, *vals))
+            nodes.append(MemoryNode(id_, *vals))
         return nodes
 
-    data: List[Node] = read_input(day=22, delim=None, parse=parse)
+    data: List[MemoryNode] = read_input(day=22, delim=None, parse=parse)
+    if not part_1:
+        moves = day_22_bfs(data) + 1
+        moves += 5 * (max(n.x for n in data) - 1)
+        return moves
+
     used_nodes = [n.used for n in data if n.used]
     available_vals = sorted([n.avail for n in data])
     num_avail = len(available_vals)

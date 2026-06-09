@@ -157,3 +157,5 @@ class InstructionExecuter:
     @property
     def n(self):
         return len(self.state)
+
+MemoryNode = namedtuple('MemoryNode', ['id_', 'x', 'y', 'size', 'used', 'avail', 'use'])
