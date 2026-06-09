@@ -349,8 +349,11 @@ def day_11(part_1=True) -> int:
         )
 
     f: Dict[str, List[int, int]] = read_input(day=11, delim=None, parse=parse)
-    floors = canonical((0, [tuple(v) for v in f.values()]))
-    q, visited = deque([(floors, 0)]), set()
+    floors = [tuple(v) for v in f.values()]
+    if not part_1:
+        floors.extend([(0, 0), (0, 0)])
+    init_state = canonical((0, floors))
+    q, visited = deque([(init_state, 0)]), set()
     while q:
         state, steps = q.popleft()
         if goal(state):
@@ -711,5 +714,5 @@ if __name__ == '__main__':
         if day not in funcs:
             print(f'{day}() = NotImplemented')
             continue
-        # print(f'{day}() = {funcs[day]()}')
+        print(f'{day}() = {funcs[day]()}')
         print(f'{day}(part=2) = {funcs[day](part_1=False)}')
