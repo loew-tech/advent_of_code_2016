@@ -11,7 +11,7 @@ from typing import List, Dict, Set, Tuple, Any
 from unittest.mock import mock_open
 
 from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter, MemoryNode, AssembunnyExecutor, \
-    AssembunnyTGLExecutor
+    AssembunnyTGLExecutor, AssembunnyTGL_OUTExecutor
 from constants import *
 from dbg_utils import print_grid
 from helpers import day_8_build_grid, day_22_bfs
@@ -645,6 +645,24 @@ def day_24(part_1=True) -> int:
             current = location
         min_ = min(min_, distance + lookup[current]['0'] * (not part_1))
     return min_
+
+
+def day_25(part_1=True) -> int:
+    instructions: List[Instruction] = read_input(
+        day=25,
+        parse=lambda x: Instruction(
+            action=(s:=x.split())[0],
+            args=[int(w) if w.lstrip('-').isnumeric() else w for w in s[1:]]
+        )
+    )
+
+    a = -1
+    while (a:=a+1) > -1:
+        executor = AssembunnyTGL_OUTExecutor(a=a)
+        executor.execute(instructions[:])
+        if executor.solution:
+            return a
+    return a
 
 
 if __name__ == '__main__':

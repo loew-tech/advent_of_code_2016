@@ -201,6 +201,7 @@ class AssembunnyTGLExecutor(AssembunnyExecutor):
     def __init__(self, a=0, b=0, c=0, d=0):
         super().__init__(a, b, c, d)
         self._actions['tgl'] = self._tgl
+        self.solution = False
 
     def _tgl(self, x: int | str, instructions: List[Instruction]) -> None:
         if (indx_ := self._value(x) + self._i) >= len(instructions):
@@ -228,3 +229,32 @@ class AssembunnyTGLExecutor(AssembunnyExecutor):
                 continue
             self._actions[instruction.action](*instruction.args)
             self._i += not (instruction.action == 'jnz')
+
+
+class AssembunnyTGL_OUTExecutor(AssembunnyTGLExecutor):
+    def __init__(self, a=0, b=0, c=0, d=0):
+        super().__init__(a, b, c, d)
+        self._actions['out'] = self._out
+        self._output = []
+
+    def _out(self, x : int | str) -> None:
+        self._output.append(self._value(x))
+
+    def execute(self, instructions: List[Instruction]) -> None:
+        self._i, self._output = 0, []
+        target = '01' * 10
+        while self._i < len(instructions) and \
+                not self.output == target and \
+                self.output in target:
+            instruction = instructions[self._i]
+            if instruction.action == 'tgl':
+                self._tgl(instruction.args[0], instructions)
+                self._i += 1
+                continue
+            self._actions[instruction.action](*instruction.args)
+            self._i += not (instruction.action == 'jnz')
+        self.solution = self.output == target
+
+    @property
+    def output(self):
+        return f'{"".join(str(d) for d in self._output)}'
