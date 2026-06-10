@@ -10,7 +10,8 @@ from itertools import permutations, combinations
 from typing import List, Dict, Set, Tuple, Any
 from unittest.mock import mock_open
 
-from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter, MemoryNode, AssembunnyExecutor
+from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter, MemoryNode, AssembunnyExecutor, \
+    AssembunnyTGLExecutor
 from constants import *
 from dbg_utils import print_grid
 from helpers import day_8_build_grid, day_22_bfs
@@ -604,50 +605,9 @@ def day_23(part_1=True) -> int:
         )
     )
 
-    registers = {'a': 7 if part_1 else 12, 'b': 0, 'c': 0, 'd': 0}
-    def modify(register: str, new_val: int) -> None:
-        registers[register] = new_val
-
-    def value(x):
-        return registers[x] if x in registers else x
-
-    def handle_toggle(i, x: int | str) -> None:
-        if (indx_ := value(x) + i) >= len(instructions):
-            return
-        instruction_ = instructions[indx_]
-        match instruction_.action:
-            case 'inc':
-                instructions[indx_] = Instruction(action='dec', args=instruction_.args)
-            case 'dec' | 'tgl':
-                instructions[indx_] = Instruction(action='inc', args=instruction_.args)
-            case 'cpy':
-                instructions[indx_] = Instruction(action='jnz', args=instruction_.args)
-            case 'jnz':
-                instructions[indx_] = Instruction(action='cpy', args=instruction_.args)
-            case _:
-                print("Unknown Status", instruction_.action)
-
-    actions = {
-        'inc': lambda reg: modify(reg, value(reg) + 1),
-        'dec': lambda reg: modify(reg, value(reg)-1),
-        'cpy': lambda v, reg: modify(reg, value(v))
-    }
-    indx = 0
-    while indx < len(instructions):
-        instruction = instructions[indx]
-        print(f'{indx}. {instruction} {registers}')
-        if instruction.action == 'jnz':
-            should_jump = value(instruction.args[0])
-            val = value(instruction.args[1])
-            indx += val if should_jump else 1
-            continue
-        if instruction.action == 'tgl':
-            handle_toggle(indx, instruction.args[0])
-            indx += 1
-            continue
-        actions[instruction.action](*instruction.args)
-        indx += 1
-    return registers['a']
+    executor = AssembunnyTGLExecutor(a=7 if part_1 else 12)
+    executor.execute(instructions)
+    return executor.a
 
 
 def day_24(part_1=True) -> int:

@@ -196,18 +196,35 @@ class AssembunnyExecutor:
     def a(self):
         return self._registers['a']
 
-    # def _handle_toggle(self, i, x: int | str, instructions: List[Instruction]) -> None:
-    #     if (indx_ := self._value(x) + i) >= len(instructions):
-    #         return
-    #     instruction_ = instructions[indx_]
-    #     match instruction_.action:
-    #         case 'inc':
-    #             instructions[indx_] = Instruction(action='dec', args=instruction_.args)
-    #         case 'dec' | 'tgl':
-    #             instructions[indx_] = Instruction(action='inc', args=instruction_.args)
-    #         case 'cpy':
-    #             instructions[indx_] = Instruction(action='jnz', args=instruction_.args)
-    #         case 'jnz':
-    #             instructions[indx_] = Instruction(action='cpy', args=instruction_.args)
-    #         case _:
-    #             print("Unknown Status", instruction_.action)
+
+class AssembunnyTGLExecutor(AssembunnyExecutor):
+    def __init__(self, a=0, b=0, c=0, d=0):
+        super().__init__(a, b, c, d)
+        self._actions['tgl'] = self._tgl
+
+    def _tgl(self, x: int | str, instructions: List[Instruction]) -> None:
+        if (indx_ := self._value(x) + self._i) >= len(instructions):
+            return
+        instruction_ = instructions[indx_]
+        match instruction_.action:
+            case 'inc':
+                instructions[indx_] = Instruction(action='dec', args=instruction_.args)
+            case 'dec' | 'tgl':
+                instructions[indx_] = Instruction(action='inc', args=instruction_.args)
+            case 'cpy':
+                instructions[indx_] = Instruction(action='jnz', args=instruction_.args)
+            case 'jnz':
+                instructions[indx_] = Instruction(action='cpy', args=instruction_.args)
+            case _:
+                print("Unknown Status", instruction_.action)
+
+    def execute(self, instructions: List[Instruction]) -> None:
+        self._i = 0
+        while self._i < len(instructions):
+            instruction = instructions[self._i]
+            if instruction.action == 'tgl':
+                self._tgl(instruction.args[0], instructions)
+                self._i += 1
+                continue
+            self._actions[instruction.action](*instruction.args)
+            self._i += not (instruction.action == 'jnz')
