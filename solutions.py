@@ -10,7 +10,7 @@ from itertools import permutations, combinations
 from typing import List, Dict, Set, Tuple, Any
 from unittest.mock import mock_open
 
-from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter, MemoryNode
+from classes import Bot, Disc, LLNode, Instruction, InstructionExecuter, MemoryNode, AssembunnyExecutor
 from constants import *
 from dbg_utils import print_grid
 from helpers import day_8_build_grid, day_22_bfs
@@ -366,7 +366,6 @@ def day_11(part_1=True) -> int:
             q.append((nxt, steps + 1))
     return -1
 
-
 def day_12(part_1=True) -> int:
     instructions: List[Instruction] = read_input(
         day=12,
@@ -376,29 +375,9 @@ def day_12(part_1=True) -> int:
         )
     )
 
-    registers = {'a': 0, 'b': 0, 'c': 0 if part_1 else 1, 'd': 0}
-    def modify(register: str, new_val: int) -> None:
-        registers[register] = new_val
-
-    def value(x):
-        return registers[x] if x in registers else x
-
-    actions = {
-        'inc': lambda reg: modify(reg, value(reg) + 1),
-        'dec': lambda reg: modify(reg, value(reg)-1),
-        'cpy': lambda v, reg: modify(reg, value(v))
-    }
-    indx = 0
-    while indx < len(instructions):
-        instruction = instructions[indx]
-        if instruction.action == 'jnz':
-            should_jump = value(instruction.args[0])
-            val = value(instruction.args[1])
-            indx += val if should_jump else 1
-            continue
-        actions[instruction.action](*instruction.args)
-        indx += 1
-    return registers['a']
+    executor = AssembunnyExecutor(c=0 if part_1 else 1)
+    executor.execute(instructions)
+    return executor.a
 
 
 def day_13(part_1=True) -> int:

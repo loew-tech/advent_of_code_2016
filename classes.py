@@ -2,7 +2,7 @@ import math
 import re
 from collections import namedtuple
 from itertools import count
-from typing import Generator, List, Tuple, Union, Iterable
+from typing import Generator, List, Tuple, Union, Iterable, Dict
 
 from constants import REGEX_DIGITS
 
@@ -158,4 +158,56 @@ class InstructionExecuter:
     def n(self):
         return len(self.state)
 
+
 MemoryNode = namedtuple('MemoryNode', ['id_', 'x', 'y', 'size', 'used', 'avail', 'use'])
+
+
+class AssembunnyExecutor:
+
+    def __init__(self, a=0, b=0, c=0, d=0):
+        self._registers = {'a': a, 'b': b, 'c': c, 'd': d}
+        self._actions = {
+            'inc': lambda reg: self._modify(reg, self._value(reg) + 1),
+            'dec': lambda reg: self._modify(reg, self._value(reg) - 1),
+            'cpy': lambda v, reg: self._modify(reg, self._value(v)),
+            'jnz': self._jnz
+        }
+        self._i = 0
+
+    def _modify(self, register, val) -> None:
+        self._registers[register] = val
+
+    def _value(self, key: str | int) -> int:
+        return self._registers[key] if key in self._registers else key
+
+    def _jnz(self, shouold_jump_, offset: str | int) -> None:
+        should_jump = self._value(shouold_jump_)
+        val = self._value(offset)
+        self._i += val if should_jump else 1
+
+    def execute(self, instructions: List[Instruction]) -> None:
+        self._i = 0
+        while self._i < len(instructions):
+            instruction = instructions[self._i]
+            self._actions[instruction.action](*instruction.args)
+            self._i +=  not (instruction.action == 'jnz')
+
+    @property
+    def a(self):
+        return self._registers['a']
+
+    # def _handle_toggle(self, i, x: int | str, instructions: List[Instruction]) -> None:
+    #     if (indx_ := self._value(x) + i) >= len(instructions):
+    #         return
+    #     instruction_ = instructions[indx_]
+    #     match instruction_.action:
+    #         case 'inc':
+    #             instructions[indx_] = Instruction(action='dec', args=instruction_.args)
+    #         case 'dec' | 'tgl':
+    #             instructions[indx_] = Instruction(action='inc', args=instruction_.args)
+    #         case 'cpy':
+    #             instructions[indx_] = Instruction(action='jnz', args=instruction_.args)
+    #         case 'jnz':
+    #             instructions[indx_] = Instruction(action='cpy', args=instruction_.args)
+    #         case _:
+    #             print("Unknown Status", instruction_.action)
